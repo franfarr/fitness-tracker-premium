@@ -326,8 +326,7 @@ function App() {
             ["weekly", "Weekly Habits"],
             ["goals", "Goals"],
             ["progress", "Progress"],
-            ["settings", "Settings"],
-          ].map(([key, label]) => (
+           ].map(([key, label]) => (
             <button
               key={key}
               onClick={() => setTab(key)}
