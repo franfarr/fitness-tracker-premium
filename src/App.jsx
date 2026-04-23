@@ -2,8 +2,6 @@ import React, { useEffect, useMemo, useState } from "react";
 
 const STORAGE_KEY = "fitness-tracker-app-v2";
 
-const [settingsOpen, setSettingsOpen] = useState(false);
-
 const getIcon = (id) => {
   switch (id) {
     case "bw":
@@ -165,6 +163,7 @@ function App() {
   const [selectedDate, setSelectedDate] = useState(dateKey());
   const [editing, setEditing] = useState(null);
   const [draftItems, setDraftItems] = useState([]);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     setState(loadState());
