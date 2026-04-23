@@ -1345,6 +1345,28 @@ const styles = {
     gap: 10,
     marginTop: 14,
   },
+  heroTop: {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "flex-start",
+  gap: 12,
+},
+settingsCog: {
+  border: "1px solid rgba(255,255,255,0.12)",
+  background: "rgba(255,255,255,0.06)",
+  color: "#ffffff",
+  borderRadius: 18,
+  width: 48,
+  height: 48,
+  minWidth: 48,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontSize: 22,
+  cursor: "pointer",
+  backdropFilter: "blur(12px)",
+  boxShadow: "0 0 18px rgba(34,211,238,0.08)",
+},
 };
 
 export default App;
