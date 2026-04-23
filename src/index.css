@@ -26,13 +26,4 @@ select {
   font: inherit;
 }
 
-@keyframes slideInSettings {
-  from {
-    transform: translateX(100%);
-    opacity: 0.6;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
+
