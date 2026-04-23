@@ -369,16 +369,7 @@ function App() {
                     : "No comparison yet"
                 }
               />
-              <MetricCard
-                title="7-day average"
-                value={currentWeightAvg != null ? `${currentWeightAvg} kg` : "-"}
-                subtitle="Average bodyweight over the last 7 days"
-                note={
-                  weeklyWeightChange != null
-                    ? `${weeklyWeightChange < 0 ? "Down" : "Up"} ${Math.abs(weeklyWeightChange)} kg vs previous 7 days`
-                    : "Need more entries to compare"
-                }
-              />
+             
             </div>
 
             <Panel title="Goals snapshot" subtitle="Your current target values">
