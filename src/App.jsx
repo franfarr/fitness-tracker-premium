@@ -295,29 +295,39 @@ function App() {
       <div style={styles.glowThree} />
 
       <div style={styles.shell}>
-        <header style={styles.hero}>
-          <div>
-            <div style={styles.badge}>Premium fitness and habit tracker</div>
-            <h1 style={styles.title}>{state.title}</h1>
-            <p style={styles.subtitle}>
-              Track your habits, goals, nutrition, and progress in one place.
-            </p>
-          </div>
+       <header style={styles.hero}>
+  <div style={styles.heroTop}>
+    <div>
+      <div style={styles.badge}>Premium fitness and habit tracker</div>
+      <h1 style={styles.title}>{state.title}</h1>
+      <p style={styles.subtitle}>
+        Track your habits, goals, nutrition, and progress in one place.
+      </p>
+    </div>
 
-          <div style={styles.heroGrid}>
-            <div style={styles.smallPanel}>
-              <div style={styles.smallMuted}>Today</div>
-              <div style={styles.smallStrong}>{dayName(selectedDate)}</div>
-              <div style={styles.smallMuted}>{formatPrettyDate(selectedDate)}</div>
-            </div>
-            <div style={styles.smallPanel}>
-              <div style={styles.smallMuted}>This week</div>
-              <div style={styles.smallStrong}>{weeklyPercent}% complete</div>
-              <div style={styles.smallMuted}>Weekly habit score</div>
-            </div>
-          </div>
-        </header>
+    <button
+      onClick={() => setTab("settings")}
+      style={styles.settingsCog}
+      aria-label="Open settings"
+      title="Settings"
+    >
+      ⚙️
+    </button>
+  </div>
 
+  <div style={styles.heroGrid}>
+    <div style={styles.smallPanel}>
+      <div style={styles.smallMuted}>Today</div>
+      <div style={styles.smallStrong}>{dayName(selectedDate)}</div>
+      <div style={styles.smallMuted}>{formatPrettyDate(selectedDate)}</div>
+    </div>
+    <div style={styles.smallPanel}>
+      <div style={styles.smallMuted}>This week</div>
+      <div style={styles.smallStrong}>{weeklyPercent}% complete</div>
+      <div style={styles.smallMuted}>Weekly habit score</div>
+    </div>
+  </div>
+</header>
         <nav style={styles.tabBar}>
           {[
             ["dashboard", "Dashboard"],
