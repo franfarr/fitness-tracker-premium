@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 
 const STORAGE_KEY = "fitness-tracker-app-v2";
 
+const [settingsOpen, setSettingsOpen] = useState(false);
+
 const getIcon = (id) => {
   switch (id) {
     case "bw":
@@ -306,7 +308,7 @@ function App() {
     </div>
 
     <button
-      onClick={() => setTab("settings")}
+      onClick={() => setSettingsOpen(true)}
       style={styles.settingsCog}
       aria-label="Open settings"
       title="Settings"
@@ -623,76 +625,82 @@ function App() {
           </section>
         )}
 
-        {tab === "settings" && (
-          <section style={styles.section}>
-            <Panel title="App Settings">
-              <div style={styles.settingsCard}>
-                <label style={styles.settingsLabel}>App title</label>
-                <input
-                  value={state.title}
-                  onChange={(e) => setState((prev) => ({ ...prev, title: e.target.value }))}
-                  style={styles.input}
-                />
-              </div>
+      {settingsOpen && (
+  <div style={styles.settingsOverlay} onClick={() => setSettingsOpen(false)}>
+    <div style={styles.settingsPanel} onClick={(e) => e.stopPropagation()}>
+      <div style={styles.settingsPanelTop}>
+        <div>
+          <div style={styles.panelTitle}>Settings</div>
+          <div style={styles.panelSub}>Manage app title, tracker fields, and checklists.</div>
+        </div>
+        <button style={styles.closeButton} onClick={() => setSettingsOpen(false)}>
+          ×
+        </button>
+      </div>
 
-              <div style={styles.settingsCard}>
-                <div style={styles.settingsHeading}>Tracker fields</div>
-                <div style={styles.settingsHelp}>Turn fields on or off.</div>
-                <div style={styles.switchList}>
-                  {state.trackerFields.map((field) => (
-                    <label key={field.id} style={styles.switchRow}>
-                      <div>
-                        <div style={styles.switchTitle}>{field.label}</div>
-                        <div style={styles.switchUnit}>{field.unit || "No unit"}</div>
-                      </div>
-                      <input
-                        type="checkbox"
-                        checked={field.enabled}
-                        onChange={(e) => {
-                          const checked = e.target.checked;
-                          setState((prev) => ({
-                            ...prev,
-                            trackerFields: prev.trackerFields.map((item) =>
-                              item.id === field.id ? { ...item, enabled: checked } : item
-                            ),
-                          }));
-                        }}
-                      />
-                    </label>
-                  ))}
-                </div>
-              </div>
+      <div style={styles.settingsCard}>
+        <label style={styles.settingsLabel}>App title</label>
+        <input
+          value={state.title}
+          onChange={(e) => setState((prev) => ({ ...prev, title: e.target.value }))}
+          style={styles.input}
+        />
+      </div>
 
-              <div style={styles.settingsCard}>
-                <div style={styles.settingsRowBetween}>
-                  <div>
-                    <div style={styles.switchTitle}>Daily Habits</div>
-                    <div style={styles.switchUnit}>
-                      Rename, add, or remove daily checklist items.
-                    </div>
-                  </div>
-                  <button style={styles.secondaryButton} onClick={() => openEditor("daily")}>
-                    Edit
-                  </button>
-                </div>
+      <div style={styles.settingsCard}>
+        <div style={styles.settingsHeading}>Tracker fields</div>
+        <div style={styles.settingsHelp}>Turn fields on or off.</div>
+        <div style={styles.switchList}>
+          {state.trackerFields.map((field) => (
+            <label key={field.id} style={styles.switchRow}>
+              <div>
+                <div style={styles.switchTitle}>{field.label}</div>
+                <div style={styles.switchUnit}>{field.unit || "No unit"}</div>
               </div>
+              <input
+                type="checkbox"
+                checked={field.enabled}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setState((prev) => ({
+                    ...prev,
+                    trackerFields: prev.trackerFields.map((item) =>
+                      item.id === field.id ? { ...item, enabled: checked } : item
+                    ),
+                  }));
+                }}
+              />
+            </label>
+          ))}
+        </div>
+      </div>
 
-              <div style={styles.settingsCard}>
-                <div style={styles.settingsRowBetween}>
-                  <div>
-                    <div style={styles.switchTitle}>Weekly Habits</div>
-                    <div style={styles.switchUnit}>
-                      Rename, add, or remove weekly checklist items.
-                    </div>
-                  </div>
-                  <button style={styles.secondaryButton} onClick={() => openEditor("weekly")}>
-                    Edit
-                  </button>
-                </div>
-              </div>
-            </Panel>
-          </section>
-        )}
+      <div style={styles.settingsCard}>
+        <div style={styles.settingsRowBetween}>
+          <div>
+            <div style={styles.switchTitle}>Daily Habits</div>
+            <div style={styles.switchUnit}>Rename, add, or remove daily checklist items.</div>
+          </div>
+          <button style={styles.secondaryButton} onClick={() => openEditor("daily")}>
+            Edit
+          </button>
+        </div>
+      </div>
+
+      <div style={styles.settingsCard}>
+        <div style={styles.settingsRowBetween}>
+          <div>
+            <div style={styles.switchTitle}>Weekly Habits</div>
+            <div style={styles.switchUnit}>Rename, add, or remove weekly checklist items.</div>
+          </div>
+          <button style={styles.secondaryButton} onClick={() => openEditor("weekly")}>
+            Edit
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
       </div>
 
       {editing && (
@@ -1367,6 +1375,43 @@ settingsCog: {
   backdropFilter: "blur(12px)",
   boxShadow: "0 0 18px rgba(34,211,238,0.08)",
 },
+settingsOverlay: {
+  position: "fixed",
+  inset: 0,
+  background: "rgba(0,0,0,0.65)",
+  zIndex: 30,
+  display: "flex",
+  justifyContent: "flex-end",
+},
+settingsPanel: {
+  width: "min(92vw, 430px)",
+  height: "100vh",
+  overflowY: "auto",
+  background: "rgba(10,15,30,0.96)",
+  borderLeft: "1px solid rgba(255,255,255,0.12)",
+  padding: 18,
+  boxShadow: "-20px 0 80px rgba(34,211,238,0.16)",
+  backdropFilter: "blur(22px)",
+  animation: "slideInSettings 0.22s ease-out",
+},
+settingsPanelTop: {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "flex-start",
+  gap: 12,
+  marginBottom: 16,
+},
+closeButton: {
+  width: 42,
+  height: 42,
+  borderRadius: 16,
+  border: "1px solid rgba(255,255,255,0.12)",
+  background: "rgba(255,255,255,0.06)",
+  color: "#ffffff",
+  fontSize: 26,
+  lineHeight: 1,
+  cursor: "pointer",
+},  
 };
 
 export default App;
