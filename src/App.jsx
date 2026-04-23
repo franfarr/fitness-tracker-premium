@@ -153,6 +153,10 @@ function linePoints(data, width, height, pad = 16) {
     .join(" ");
 }
 
+function validChartPoints(data) {
+  return data.filter((point) => typeof point.value === "number" && !Number.isNaN(point.value));
+}
+
 function App() {
   const [state, setState] = useState(defaultState);
   const [tab, setTab] = useState("dashboard");
@@ -188,6 +192,8 @@ function App() {
     label: new Date(key).toLocaleDateString(undefined, { day: "numeric", month: "short" }),
     value: Number(state.entries[key]?.metrics?.bw) || null,
   }));
+
+  const validWeightPoints = validChartPoints(chartData);
 
   const last7 = getRange(7);
   const prev7 = getRange(14).slice(0, 7);
@@ -352,33 +358,27 @@ function App() {
                 value={currentWeight != null ? `${currentWeight} kg` : "-"}
                 subtitle={
                   firstWeight != null
-                    ? `Started at ${firstWeight} kg`
+                    ? `Started at ${firstWeight} kg${state.goals?.bw ? ` • Target ${state.goals.bw} kg` : ""}`
+                    : state.goals?.bw
+                    ? `Target ${state.goals.bw} kg`
                     : "Add bodyweight entries to compare"
                 }
                 note={
                   totalWeightChange != null
-                    ? `${totalWeightChange < 0 ? "Down" : "Up"} ${Math.abs(
-                        totalWeightChange
-                      )} kg overall`
+                    ? `${totalWeightChange < 0 ? "Down" : "Up"} ${Math.abs(totalWeightChange)} kg overall`
                     : "No comparison yet"
                 }
               />
-             <MetricCard
-  title="Current weight"
-  value={currentWeight != null ? `${currentWeight} kg` : "-"}
-  subtitle={
-    firstWeight != null
-      ? `Started at ${firstWeight} kg${state.goals?.bw ? ` • Target ${state.goals.bw} kg` : ""}`
-      : state.goals?.bw
-      ? `Target ${state.goals.bw} kg`
-      : "Add bodyweight entries to compare"
-  }
-  note={
-    totalWeightChange != null
-      ? `${totalWeightChange < 0 ? "Down" : "Up"} ${Math.abs(totalWeightChange)} kg overall`
-      : "No comparison yet"
-  }
-/>
+              <MetricCard
+                title="7-day average"
+                value={currentWeightAvg != null ? `${currentWeightAvg} kg` : "-"}
+                subtitle="Average bodyweight over the last 7 days"
+                note={
+                  weeklyWeightChange != null
+                    ? `${weeklyWeightChange < 0 ? "Down" : "Up"} ${Math.abs(weeklyWeightChange)} kg vs previous 7 days`
+                    : "Need more entries to compare"
+                }
+              />
             </div>
 
             <Panel title="Goals snapshot" subtitle="Your current target values">
@@ -401,27 +401,44 @@ function App() {
             </Panel>
 
             <div style={styles.stackGap}>
-              <Panel title="Weight trend">
-                <div style={styles.chartWrap}>
-                  <svg viewBox="0 0 320 200" style={styles.chart}>
-                    <rect x="0" y="0" width="320" height="200" rx="18" fill="#05070a" />
-                    <polyline
-                      fill="none"
-                      stroke="#67e8f9"
-                      strokeWidth="4"
-                      strokeLinejoin="round"
-                      strokeLinecap="round"
-                      points={linePoints(chartData, 320, 200)}
-                    />
-                    {chartData.map((point, index) => {
-                      if (point.value == null) return null;
-                      const coords = linePoints(chartData, 320, 200).split(" ")[index];
-                      if (!coords) return null;
-                      const [x, y] = coords.split(",").map(Number);
-                      return <circle key={point.key} cx={x} cy={y} r="4" fill="#ffffff" />;
-                    })}
-                  </svg>
-                </div>
+              <Panel title="Weight trend" subtitle="Bodyweight over the last 14 days">
+                {validWeightPoints.length < 3 ? (
+                  <div style={styles.chartEmpty}>
+                    Add a few more weight entries to build a clearer trend.
+                  </div>
+                ) : (
+                  <>
+                    <div style={styles.chartMeta}>
+                      <span>Latest: {validWeightPoints[validWeightPoints.length - 1]?.value} kg</span>
+                      <span>Points: {validWeightPoints.length}</span>
+                    </div>
+                    <div style={styles.chartWrap}>
+                      <svg viewBox="0 0 320 200" style={styles.chart}>
+                        <rect x="0" y="0" width="320" height="200" rx="18" fill="#05070a" />
+                        <polyline
+                          fill="none"
+                          stroke="#67e8f9"
+                          strokeWidth="4"
+                          strokeLinejoin="round"
+                          strokeLinecap="round"
+                          points={linePoints(chartData, 320, 200)}
+                        />
+                        {chartData.map((point, index) => {
+                          if (point.value == null) return null;
+                          const coords = linePoints(chartData, 320, 200).split(" ")[index];
+                          if (!coords) return null;
+                          const [x, y] = coords.split(",").map(Number);
+                          return <circle key={point.key} cx={x} cy={y} r="4" fill="#ffffff" />;
+                        })}
+                      </svg>
+                    </div>
+                    <div style={styles.chartLabels}>
+                      <span>{chartData[0]?.label}</span>
+                      <span>{chartData[Math.floor(chartData.length / 2)]?.label}</span>
+                      <span>{chartData[chartData.length - 1]?.label}</span>
+                    </div>
+                  </>
+                )}
               </Panel>
 
               <Panel title="This week at a glance">
@@ -972,6 +989,37 @@ const styles = {
     width: "100%",
     height: "auto",
     display: "block",
+  },
+  chartMeta: {
+    display: "flex",
+    justifyContent: "space-between",
+    gap: 12,
+    color: "#d1d5db",
+    fontSize: 13,
+    marginBottom: 8,
+  },
+  chartLabels: {
+    display: "flex",
+    justifyContent: "space-between",
+    gap: 12,
+    color: "#9ca3af",
+    fontSize: 12,
+    marginTop: 8,
+    padding: "0 4px",
+  },
+  chartEmpty: {
+    minHeight: 120,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    textAlign: "center",
+    color: "#d1d5db",
+    fontSize: 14,
+    lineHeight: 1.5,
+    background: "rgba(0,0,0,0.28)",
+    border: "1px solid rgba(255,255,255,0.10)",
+    borderRadius: 20,
+    padding: 20,
   },
   listStack: {
     display: "grid",
