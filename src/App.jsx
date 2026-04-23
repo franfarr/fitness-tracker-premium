@@ -35,7 +35,7 @@ const defaultState = {
     { id: "fat", label: "Fat", unit: "g", enabled: true },
     { id: "sleep", label: "Sleep", unit: "hrs", enabled: true },
     { id: "steps", label: "Steps", unit: "steps", enabled: true },
-    { id: "water", label: "Water", unit: "L", enabled: false },
+    { id: "water", label: "Water", unit: "L", enabled: true },
   ],
   goals: {
     bw: "",
