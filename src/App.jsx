@@ -427,6 +427,7 @@ function App() {
     <AdvancedWeightChart
       chartData={chartData}
       targetWeight={targetWeight}
+      startWeight={firstWeight}
       validWeightPoints={validWeightPoints}
     />
   )}
@@ -775,7 +776,7 @@ function Bar({ value }) {
   );
 }
 
-function AdvancedWeightChart({ chartData, targetWeight, validWeightPoints }) {
+function AdvancedWeightChart({ chartData, targetWeight, startWeight, validWeightPoints }) {
   const width = 360;
   const height = 240;
   const padLeft = 44;
@@ -784,7 +785,11 @@ function AdvancedWeightChart({ chartData, targetWeight, validWeightPoints }) {
   const padBottom = 42;
 
   const values = validWeightPoints.map((point) => point.value);
-  const allValues = targetWeight != null ? [...values, targetWeight] : values;
+ const allValues = [
+  ...values,
+  ...(targetWeight != null ? [targetWeight] : []),
+  ...(startWeight != null ? [startWeight] : []),
+];
 
   const rawMin = Math.min(...allValues);
   const rawMax = Math.max(...allValues);
@@ -917,6 +922,28 @@ function AdvancedWeightChart({ chartData, targetWeight, validWeightPoints }) {
               </text>
             </>
           )}
+          {startWeight != null && (
+  <>
+    <line
+      x1={padLeft}
+      x2={width - padRight}
+      y1={yFor(startWeight)}
+      y2={yFor(startWeight)}
+      stroke="#ef4444"
+      strokeDasharray="7 7"
+      strokeWidth="2.5"
+    />
+    <text
+      x={padLeft + 6}
+      y={yFor(startWeight) - 7}
+      fill="#fca5a5"
+      fontSize="12"
+      fontWeight="800"
+    >
+      Start {startWeight}kg
+    </text>
+  </>
+)}
 
           <polyline
             fill="none"
@@ -968,6 +995,11 @@ function AdvancedWeightChart({ chartData, targetWeight, validWeightPoints }) {
             <span style={styles.legendLineYellow}></span>Target ({targetWeight} kg)
           </span>
         )}
+        {startWeight != null && (
+  <span style={styles.legendItem}>
+    <span style={styles.legendLineRed}></span>Start ({startWeight} kg)
+  </span>
+)}
       </div>
     </div>
   );
@@ -1639,6 +1671,13 @@ legendLineYellow: {
   height: 3,
   borderRadius: 999,
   background: "repeating-linear-gradient(90deg, #facc15 0 8px, transparent 8px 14px)",
+  display: "inline-block",
+},
+  legendLineRed: {
+  width: 26,
+  height: 3,
+  borderRadius: 999,
+  background: "repeating-linear-gradient(90deg, #ef4444 0 8px, transparent 8px 14px)",
   display: "inline-block",
 },
   
