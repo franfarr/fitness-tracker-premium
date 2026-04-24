@@ -889,7 +889,7 @@ function AdvancedWeightChart({ chartData, targetWeight, startWeight, validWeight
                 x2={width - padRight}
                 y1={targetY}
                 y2={targetY}
-                stroke="#facc15"
+                stroke="#22c55e"
                 strokeDasharray="7 7"
                 strokeWidth="2.5"
               />
@@ -899,13 +899,13 @@ function AdvancedWeightChart({ chartData, targetWeight, startWeight, validWeight
                 width="72"
                 height="46"
                 rx="12"
-                fill="rgba(250,204,21,0.08)"
-                stroke="rgba(250,204,21,0.45)"
+                fill="rgba(34,197,94,0.08)"
+                stroke="rgba(34,197,94,0.45)"
               />
               <text
                 x={width - 68}
                 y={targetY - 4}
-                fill="#facc15"
+                fill="#22c55e"
                 fontSize="12"
                 fontWeight="800"
               >
@@ -1666,11 +1666,11 @@ legendLineCyan: {
   background: "#67e8f9",
   display: "inline-block",
 },
-legendLineYellow: {
+legendLineGreen: {
   width: 26,
   height: 3,
   borderRadius: 999,
-  background: "repeating-linear-gradient(90deg, #facc15 0 8px, transparent 8px 14px)",
+  background: "repeating-linear-gradient(90deg, #22c55e 0 8px, transparent 8px 14px)",
   display: "inline-block",
 },
   legendLineRed: {
