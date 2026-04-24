@@ -464,10 +464,7 @@ const weeklyTrendText =
     />
   )}
 </Panel>
-              <Panel title="Weight trend">
-  ...
-</Panel>
-
+              
 <Panel title="Progress comparison" subtitle="Quick view of your progress">
   <div style={styles.comparisonGrid}>
     <ComparisonCard
