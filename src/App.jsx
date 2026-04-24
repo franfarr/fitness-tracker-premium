@@ -134,23 +134,37 @@ function statChange(current, previous) {
   return +(current - previous).toFixed(1);
 }
 
-function linePoints(data, width, height, pad = 16) {
-  const values = data.map((d) => d.value).filter((v) => typeof v === "number");
-  if (!values.length) return "";
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const spread = Math.max(max - min, 1);
-  return data
+function linePoints(data, width, height, target, pad = 16) {
+  const values = data
+    .map((d) => d.value)
+    .filter((v) => typeof v === "number");
+
+  if (!values.length) return { points: "", min: 0, max: 0 };
+
+  const allValues = target ? [...values, target] : values;
+
+  const min = Math.min(...allValues) - 1;
+  const max = Math.max(...allValues) + 1;
+  const spread = max - min;
+
+  const points = data
     .map((d, i) => {
-      const x = pad + (i * (width - pad * 2)) / Math.max(data.length - 1, 1);
+      if (d.value == null) return null;
+
+      const x =
+        pad + (i * (width - pad * 2)) / Math.max(data.length - 1, 1);
+
       const y =
-        d.value == null
-          ? null
-          : height - pad - ((d.value - min) / spread) * (height - pad * 2);
-      return y == null ? null : `${x},${y}`;
+        height -
+        pad -
+        ((d.value - min) / spread) * (height - pad * 2);
+
+      return `${x},${y}`;
     })
     .filter(Boolean)
     .join(" ");
+
+  return { points, min, max };
 }
 
 function validChartPoints(data) {
@@ -195,6 +209,8 @@ function App() {
   }));
 
   const validWeightPoints = validChartPoints(chartData);
+
+  const targetWeight = state.goals?.bw ? Number(state.goals.bw) : null;
 
   const last7 = getRange(7);
   const prev7 = getRange(14).slice(0, 7);
@@ -402,45 +418,79 @@ function App() {
             </Panel>
 
             <div style={styles.stackGap}>
-              <Panel title="Weight trend" subtitle="Bodyweight over the last 14 days">
-                {validWeightPoints.length < 3 ? (
-                  <div style={styles.chartEmpty}>
-                    Add a few more weight entries to build a clearer trend.
-                  </div>
-                ) : (
-                  <>
-                    <div style={styles.chartMeta}>
-                      <span>Latest: {validWeightPoints[validWeightPoints.length - 1]?.value} kg</span>
-                      <span>Points: {validWeightPoints.length}</span>
-                    </div>
-                    <div style={styles.chartWrap}>
-                      <svg viewBox="0 0 320 200" style={styles.chart}>
-                        <rect x="0" y="0" width="320" height="200" rx="18" fill="#05070a" />
-                        <polyline
-                          fill="none"
-                          stroke="#67e8f9"
-                          strokeWidth="4"
-                          strokeLinejoin="round"
-                          strokeLinecap="round"
-                          points={linePoints(chartData, 320, 200)}
-                        />
-                        {chartData.map((point, index) => {
-                          if (point.value == null) return null;
-                          const coords = linePoints(chartData, 320, 200).split(" ")[index];
-                          if (!coords) return null;
-                          const [x, y] = coords.split(",").map(Number);
-                          return <circle key={point.key} cx={x} cy={y} r="4" fill="#ffffff" />;
-                        })}
-                      </svg>
-                    </div>
-                    <div style={styles.chartLabels}>
-                      <span>{chartData[0]?.label}</span>
-                      <span>{chartData[Math.floor(chartData.length / 2)]?.label}</span>
-                      <span>{chartData[chartData.length - 1]?.label}</span>
-                    </div>
-                  </>
-                )}
-              </Panel>
+             <Panel title="Weight trend" subtitle="Bodyweight over the last 14 days">
+  <div style={styles.chartWrap}>
+    {(() => {
+      const { points, min, max } = linePoints(
+        chartData,
+        320,
+        200,
+        targetWeight
+      );
+
+      if (!points) {
+        return (
+          <div style={{ padding: 20, color: "#aaa" }}>
+            No weight data yet
+          </div>
+        );
+      }
+
+      const targetY =
+        targetWeight != null
+          ? 200 -
+            16 -
+            ((targetWeight - min) / (max - min)) * (200 - 32)
+          : null;
+
+      return (
+        <svg viewBox="0 0 320 200" style={styles.chart}>
+          <rect
+            x="0"
+            y="0"
+            width="320"
+            height="200"
+            rx="18"
+            fill="#05070a"
+          />
+
+          {/* TARGET LINE */}
+          {targetWeight != null && (
+            <>
+              <line
+                x1="16"
+                x2="304"
+                y1={targetY}
+                y2={targetY}
+                stroke="#facc15"
+                strokeDasharray="6 6"
+                strokeWidth="2"
+              />
+              <text
+                x="260"
+                y={targetY - 6}
+                fill="#facc15"
+                fontSize="12"
+              >
+                Target {targetWeight}kg
+              </text>
+            </>
+          )}
+
+          {/* WEIGHT LINE */}
+          <polyline
+            fill="none"
+            stroke="#67e8f9"
+            strokeWidth="4"
+            strokeLinejoin="round"
+            strokeLinecap="round"
+            points={points}
+          />
+        </svg>
+      );
+    })()}
+  </div>
+</Panel>
 
               <Panel title="This week at a glance">
                 <div style={styles.listStack}>
