@@ -171,6 +171,25 @@ function validChartPoints(data) {
   return data.filter((point) => typeof point.value === "number" && !Number.isNaN(point.value));
 }
 
+function compareValue(actual, target, unit, lowerIsBetter = false) {
+  if (actual == null || target == null || target === "") {
+    return { text: "No data yet", good: null };
+  }
+
+  const diff = +(actual - Number(target)).toFixed(1);
+  const abs = Math.abs(diff);
+
+  if (diff === 0) {
+    return { text: "On target", good: true };
+  }
+
+  const good = lowerIsBetter ? diff < 0 : diff > 0;
+
+  return {
+    text: `${diff > 0 ? "+" : "-"}${abs} ${unit}`,
+    good,
+  };
+}
 function App() {
   const [state, setState] = useState(defaultState);
   const [tab, setTab] = useState("dashboard");
@@ -240,7 +259,20 @@ function App() {
     ...field,
     avg: avg(last7.map((key) => Number(state.entries[key]?.metrics?.[field.id]))),
   }));
+  
+  const weightVsTarget = compareValue(currentWeight, state.goals?.bw, "kg", true);
 
+const stepsAvg = metricAverages.find((f) => f.id === "steps")?.avg;
+const caloriesAvg = metricAverages.find((f) => f.id === "calories")?.avg;
+
+const stepsVsTarget = compareValue(stepsAvg, state.goals?.steps, "steps", false);
+const caloriesVsTarget = compareValue(caloriesAvg, state.goals?.calories, "kcal", true);
+
+const weeklyTrendText =
+  weeklyWeightChange != null
+    ? `${weeklyWeightChange < 0 ? "-" : "+"}${Math.abs(weeklyWeightChange)} kg`
+    : "No data";
+  
   function updateEntry(updater) {
     setState((prev) => {
       const existing = prev.entries[selectedDate] || { metrics: {}, habits: {}, notes: "" };
@@ -431,6 +463,41 @@ function App() {
       validWeightPoints={validWeightPoints}
     />
   )}
+</Panel>
+              <Panel title="Weight trend">
+  ...
+</Panel>
+
+<Panel title="Progress comparison" subtitle="Quick view of your progress">
+  <div style={styles.comparisonGrid}>
+    <ComparisonCard
+      icon="⚖️"
+      title="Weight vs target"
+      value={weightVsTarget.text}
+      good={weightVsTarget.good}
+    />
+
+    <ComparisonCard
+      icon="📉"
+      title="Weekly trend"
+      value={weeklyTrendText}
+      good={weeklyWeightChange != null ? weeklyWeightChange <= 0 : null}
+    />
+
+    <ComparisonCard
+      icon="👣"
+      title="Steps vs target"
+      value={stepsVsTarget.text}
+      good={stepsVsTarget.good}
+    />
+
+    <ComparisonCard
+      icon="🔥"
+      title="Calories vs target"
+      value={caloriesVsTarget.text}
+      good={caloriesVsTarget.good}
+    />
+  </div>
 </Panel>
 
               <Panel title="This week at a glance">
@@ -754,6 +821,27 @@ function MetricCard({ title, value, subtitle, note }) {
       <div style={styles.metricValue}>{value}</div>
       <div style={styles.metricSub}>{subtitle}</div>
       <div style={styles.metricNote}>{note}</div>
+    </div>
+  );
+}
+
+function ComparisonCard({ icon, title, value, good }) {
+  const color =
+    good == null
+      ? "#9ca3af"
+      : good
+      ? "#4ade80"
+      : "#f87171";
+
+  return (
+    <div style={styles.comparisonCard}>
+      <div style={styles.compareTop}>
+        <div style={styles.compareIcon}>{icon}</div>
+        <div>
+          <div style={styles.compareTitle}>{title}</div>
+          <div style={{ ...styles.compareValue, color }}>{value}</div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1680,7 +1768,47 @@ legendLineGreen: {
   background: "repeating-linear-gradient(90deg, #ef4444 0 8px, transparent 8px 14px)",
   display: "inline-block",
 },
-  
+comparisonGrid: {
+  display: "grid",
+  gap: 10,
+},
+
+comparisonCard: {
+  background: "rgba(0,0,0,0.28)",
+  border: "1px solid rgba(255,255,255,0.10)",
+  borderRadius: 20,
+  padding: 14,
+},
+
+compareTop: {
+  display: "flex",
+  alignItems: "center",
+  gap: 12,
+},
+
+compareIcon: {
+  width: 38,
+  height: 38,
+  borderRadius: 14,
+  background: "rgba(255,255,255,0.10)",
+  border: "1px solid rgba(255,255,255,0.10)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontSize: 18,
+},
+
+compareTitle: {
+  color: "#ffffff",
+  fontSize: 15,
+  fontWeight: 700,
+},
+
+compareValue: {
+  marginTop: 4,
+  fontSize: 16,
+  fontWeight: 800,
+},  
 };
 
 export default App;
