@@ -992,7 +992,7 @@ function AdvancedWeightChart({ chartData, targetWeight, startWeight, validWeight
         </span>
         {targetWeight != null && (
           <span style={styles.legendItem}>
-            <span style={styles.legendLineYellow}></span>Target ({targetWeight} kg)
+            <span style={styles.legendLineGreen}></span>Target ({targetWeight} kg)
           </span>
         )}
         {startWeight != null && (
