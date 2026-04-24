@@ -419,77 +419,17 @@ function App() {
 
             <div style={styles.stackGap}>
              <Panel title="Weight trend" subtitle="Bodyweight over the last 14 days">
-  <div style={styles.chartWrap}>
-    {(() => {
-      const { points, min, max } = linePoints(
-        chartData,
-        320,
-        200,
-        targetWeight
-      );
-
-      if (!points) {
-        return (
-          <div style={{ padding: 20, color: "#aaa" }}>
-            No weight data yet
-          </div>
-        );
-      }
-
-      const targetY =
-        targetWeight != null
-          ? 200 -
-            16 -
-            ((targetWeight - min) / (max - min)) * (200 - 32)
-          : null;
-
-      return (
-        <svg viewBox="0 0 320 200" style={styles.chart}>
-          <rect
-            x="0"
-            y="0"
-            width="320"
-            height="200"
-            rx="18"
-            fill="#05070a"
-          />
-
-          {/* TARGET LINE */}
-          {targetWeight != null && (
-            <>
-              <line
-                x1="16"
-                x2="304"
-                y1={targetY}
-                y2={targetY}
-                stroke="#facc15"
-                strokeDasharray="6 6"
-                strokeWidth="2"
-              />
-              <text
-                x="260"
-                y={targetY - 6}
-                fill="#facc15"
-                fontSize="12"
-              >
-                Target {targetWeight}kg
-              </text>
-            </>
-          )}
-
-          {/* WEIGHT LINE */}
-          <polyline
-            fill="none"
-            stroke="#67e8f9"
-            strokeWidth="4"
-            strokeLinejoin="round"
-            strokeLinecap="round"
-            points={points}
-          />
-        </svg>
-      );
-    })()}
-  </div>
+  {validWeightPoints.length < 3 ? (
+    <div style={styles.chartEmpty}>
+      Add a few more weight entries to build a clearer trend.
+    </div>
+  ) : (
+    <AdvancedWeightChart
+      chartData={chartData}
+      targetWeight={targetWeight}
+      validWeightPoints={validWeightPoints}
+    />
+  )}
 </Panel>
 
               <Panel title="This week at a glance">
@@ -835,6 +775,203 @@ function Bar({ value }) {
   );
 }
 
+function AdvancedWeightChart({ chartData, targetWeight, validWeightPoints }) {
+  const width = 360;
+  const height = 240;
+  const padLeft = 44;
+  const padRight = 26;
+  const padTop = 22;
+  const padBottom = 42;
+
+  const values = validWeightPoints.map((point) => point.value);
+  const allValues = targetWeight != null ? [...values, targetWeight] : values;
+
+  const rawMin = Math.min(...allValues);
+  const rawMax = Math.max(...allValues);
+
+  const min = Math.floor(rawMin - 1);
+  const max = Math.ceil(rawMax + 1);
+  const spread = Math.max(max - min, 1);
+
+  const plotW = width - padLeft - padRight;
+  const plotH = height - padTop - padBottom;
+
+  const yFor = (value) => padTop + ((max - value) / spread) * plotH;
+  const xFor = (index) =>
+    padLeft + (index * plotW) / Math.max(chartData.length - 1, 1);
+
+  const points = chartData
+    .map((point, index) => {
+      if (point.value == null) return null;
+      return `${xFor(index)},${yFor(point.value)}`;
+    })
+    .filter(Boolean)
+    .join(" ");
+
+  const targetY = targetWeight != null ? yFor(targetWeight) : null;
+  const latest = validWeightPoints[validWeightPoints.length - 1]?.value;
+
+  const tickValues = [max, Math.round((max + min) / 2), min];
+
+  return (
+    <div style={styles.advancedChartOuter}>
+      <div style={styles.chartMeta}>
+        <span>
+          Latest: <strong style={styles.cyanText}>{latest} kg</strong>
+        </span>
+        <span>Points: {validWeightPoints.length}</span>
+      </div>
+
+      <div style={styles.advancedChartBox}>
+        <svg viewBox={`0 0 ${width} ${height}`} style={styles.chart}>
+          <rect
+            x="0"
+            y="0"
+            width={width}
+            height={height}
+            rx="20"
+            fill="#05070a"
+          />
+
+          {tickValues.map((tick) => {
+            const y = yFor(tick);
+            return (
+              <g key={tick}>
+                <line
+                  x1={padLeft}
+                  x2={width - padRight}
+                  y1={y}
+                  y2={y}
+                  stroke="rgba(255,255,255,0.13)"
+                  strokeDasharray="5 7"
+                  strokeWidth="1"
+                />
+                <text
+                  x="10"
+                  y={y + 4}
+                  fill="#cbd5e1"
+                  fontSize="12"
+                  fontWeight="600"
+                >
+                  {tick}
+                </text>
+              </g>
+            );
+          })}
+
+          <line
+            x1={padLeft}
+            x2={padLeft}
+            y1={padTop}
+            y2={height - padBottom}
+            stroke="rgba(255,255,255,0.16)"
+            strokeWidth="1"
+          />
+
+          <line
+            x1={padLeft}
+            x2={width - padRight}
+            y1={height - padBottom}
+            y2={height - padBottom}
+            stroke="rgba(255,255,255,0.16)"
+            strokeWidth="1"
+          />
+
+          {targetWeight != null && (
+            <>
+              <line
+                x1={padLeft}
+                x2={width - padRight}
+                y1={targetY}
+                y2={targetY}
+                stroke="#facc15"
+                strokeDasharray="7 7"
+                strokeWidth="2.5"
+              />
+              <rect
+                x={width - 82}
+                y={targetY - 23}
+                width="72"
+                height="46"
+                rx="12"
+                fill="rgba(250,204,21,0.08)"
+                stroke="rgba(250,204,21,0.45)"
+              />
+              <text
+                x={width - 68}
+                y={targetY - 4}
+                fill="#facc15"
+                fontSize="12"
+                fontWeight="800"
+              >
+                Target
+              </text>
+              <text
+                x={width - 68}
+                y={targetY + 14}
+                fill="#facc15"
+                fontSize="14"
+                fontWeight="900"
+              >
+                {targetWeight} kg
+              </text>
+            </>
+          )}
+
+          <polyline
+            fill="none"
+            stroke="#67e8f9"
+            strokeWidth="4"
+            strokeLinejoin="round"
+            strokeLinecap="round"
+            points={points}
+          />
+
+          {chartData.map((point, index) => {
+            if (point.value == null) return null;
+            return (
+              <circle
+                key={point.key}
+                cx={xFor(index)}
+                cy={yFor(point.value)}
+                r="4.5"
+                fill="#67e8f9"
+                stroke="#ffffff"
+                strokeWidth="1.5"
+              />
+            );
+          })}
+
+          {[0, Math.floor(chartData.length / 2), chartData.length - 1].map(
+            (index) => (
+              <text
+                key={index}
+                x={xFor(index)}
+                y={height - 13}
+                textAnchor={index === 0 ? "start" : index === chartData.length - 1 ? "end" : "middle"}
+                fill="#aeb7c8"
+                fontSize="11"
+              >
+                {chartData[index]?.label}
+              </text>
+            )
+          )}
+        </svg>
+      </div>
+
+      <div style={styles.chartLegend}>
+        <span style={styles.legendItem}>
+          <span style={styles.legendLineCyan}></span>Your weight
+        </span>
+        {targetWeight != null && (
+          <span style={styles.legendItem}>
+            <span style={styles.legendLineYellow}></span>Target ({targetWeight} kg)
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
 const styles = {
   app: {
     minHeight: "100vh",
@@ -1461,6 +1598,50 @@ closeButton: {
   lineHeight: 1,
   cursor: "pointer",
 },  
+  advancedChartOuter: {
+  display: "grid",
+  gap: 10,
+},
+advancedChartBox: {
+  overflow: "hidden",
+  borderRadius: 22,
+  background: "#05070a",
+  border: "1px solid rgba(255,255,255,0.08)",
+},
+cyanText: {
+  color: "#67e8f9",
+  fontWeight: 900,
+},
+chartLegend: {
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  gap: 18,
+  color: "#cbd5e1",
+  fontSize: 13,
+  marginTop: 2,
+  flexWrap: "wrap",
+},
+legendItem: {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 8,
+},
+legendLineCyan: {
+  width: 26,
+  height: 3,
+  borderRadius: 999,
+  background: "#67e8f9",
+  display: "inline-block",
+},
+legendLineYellow: {
+  width: 26,
+  height: 3,
+  borderRadius: 999,
+  background: "repeating-linear-gradient(90deg, #facc15 0 8px, transparent 8px 14px)",
+  display: "inline-block",
+},
+  
 };
 
 export default App;
